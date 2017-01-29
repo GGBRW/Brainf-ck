@@ -1,0 +1,113 @@
+<link rel="stylesheet" href="style.css">
+<script src="brainfuck.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+<div id="container">
+    <h1>Brainfuck interpreter</h1>
+    <a href="https://en.wikipedia.org/wiki/Brainfuck">https://en.wikipedia.org/wiki/Brainfuck</a>
+    <br><br>
+
+    Memory size: &nbsp;
+    <select id="memorysize" oninput="memorySize = parseInt(this.value); reset(); memoryTape.create()">
+        <option>16 bytes</option>
+        <option>32 bytes</option>
+        <option>64 bytes</option>
+        <option>128 bytes</option>
+        <option>256 bytes</option>
+    </select>
+    <span style="padding-left: 20px"></span>
+
+    View:
+    <form id="view">
+        <input type="radio" name="view" value="hexadecimal" onclick="memoryFormat = 0" checked >Hexadecimal
+        <input type="radio" name="view" value="decimal" onclick="memoryFormat = 1">Decimal
+    </form>
+    <br>
+
+    <table id="memory"></table>
+    <script>
+        const memoryTape = document.getElementById("memory");
+
+        memoryTape.create = function() {
+            memoryTape.innerHTML = "";
+            for(let i = 0; i < memorySize; ++i) {
+                const memoryCell = document.createElement("td");
+                memoryCell.innerHTML = 0;
+                memoryCell.style.height = 40 - Math.sqrt(memorySize);
+                memoryCell.style.width = 40 - Math.sqrt(memorySize);
+                datapointer.style.height = 40 - Math.sqrt(memorySize) + 2;
+                datapointer.style.width = 40 - Math.sqrt(memorySize) + 2;
+                memoryCell.style.lineHeight = 40 - Math.sqrt(memorySize) + "px";
+                memoryCell.style.fontSize = 30 - Math.sqrt(memorySize);
+                memoryTape.appendChild(memoryCell);
+            }
+
+            let width;
+            let i = 0;
+            do {
+                width = (memorySize / Math.pow(2,i)) * (40 - Math.sqrt(memorySize) + 4);
+                ++i;
+            } while(width > innerWidth / 2 - 100);
+            memoryTape.style.width = width;
+        }
+    </script>
+
+    <div id="datapointer"></div>
+    <script>
+        const datapointer = document.getElementById("datapointer");
+
+        memoryTape.create(memorySize);
+
+        datapointer.point = function(index) {
+            if(index > memoryTape.children.length - 1) return;
+            this.style.top = memoryTape.children[index].getBoundingClientRect().top;
+            this.style.left = memoryTape.children[index].getBoundingClientRect().left;
+        }
+        datapointer.point(0);
+        datapointer.style.display = "block";
+    </script>
+
+    <div id="control">
+        <button onclick="reset(); start(editor.textContent)">Execute code</button>
+        <button onclick="stop = true; start(editor.textContent);">Step</button>
+        <button onclick="stop = true;">Stop</button>
+
+        <br><br>
+        Delay: &nbsp;
+        <input id="delay" type="range" min="0" max="1000" value="100">
+        <script>
+            const delaySlider = document.getElementById("delay");
+            delaySlider.oninput = function() {
+                delay = (this.value / 50 | 0) * 50;
+                document.getElementById("delayValue").innerHTML = delay + " ms";
+
+                if(delay < 50) datapointer.style.transition = "none";
+                else datapointer.style.transition = "top .2s, left .2s";
+            }
+        </script>
+        <span id="delayValue">100 ms</span>
+    </div>
+
+    <div id="output"><b>Output:</b></div>
+    <script>
+        const output = document.getElementById("output");
+    </script>
+</div>
+
+<div id="editor" spellcheck="false" contenteditable="true">++>++</div>
+<script>
+    const editor = document.getElementById("editor");
+    editor.style.width = window.innerWidth / 2 - 45;
+
+    window.onresize = () => {
+        editor.style.width = window.innerWidth / 2 - 45;
+
+        let width;
+        let i = 0;
+        do {
+            width = (memorySize / Math.pow(2,i)) * (40 - Math.sqrt(memorySize) + 4);
+            ++i;
+        } while(width > innerWidth / 2 - 100);
+        memoryTape.style.width = width;
+    }
+</script>
